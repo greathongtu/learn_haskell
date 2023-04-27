@@ -134,9 +134,83 @@ elem' a (x:xs)
     | otherwise = a `elem'` xs  
 
 -- quicksort
-quicksort :: (Ord a) => [a] -> [a]  
-quicksort [] = []  
-quicksort (x:xs) =   
-    let smallerSorted = quicksort [a | a <- xs, a <= x]  
-        biggerSorted = quicksort [a | a <- xs, a > x]  
-    in  smallerSorted ++ [x] ++ biggerSorted  
+quicksort :: (Ord a) => [a] -> [a]    
+quicksort [] = []    
+quicksort (x:xs) =     
+    let smallerSorted = quicksort (filter (<=x) xs)  
+        biggerSorted = quicksort (filter (>x) xs)   
+    in  smallerSorted ++ [x] ++ biggerSorted 
+
+-- higher order functions
+-- functions that take functions as parameters and/or return functions as return values
+divideByTen :: (Floating a) => a -> a  
+divideByTen = (/10)  
+
+isUpperAlphanum :: Char -> Bool  
+isUpperAlphanum = (`elem` ['A'..'Z'])  
+
+-- It takes a function and two lists as parameters and then joins the two lists by applying the function between corresponding elements.
+zipWith' :: (a -> b -> c) -> [a] -> [b] -> [c]  
+zipWith' _ [] _ = []  
+zipWith' _ _ [] = []  
+zipWith' f (x:xs) (y:ys) = f x y : zipWith' f xs ys  
+-- ghci> zipWith' (+) [4,2,5,6] [2,6,2,3]  
+-- [6,8,7,9]  
+-- ghci> zipWith' max [6,3,2,1] [7,3,1,5]  
+-- [7,3,2,5]  
+-- ghci> zipWith' (++) ["foo ", "bar ", "baz "] ["fighters", "hoppers", "aldrin"]  
+-- ["foo fighters","bar hoppers","baz aldrin"]  
+-- ghci> zipWith' (*) (replicate 5 2) [1..]  
+-- [2,4,6,8,10]  
+-- ghci> zipWith' (zipWith' (*)) [[1,2,3],[3,5,6],[2,3,4]] [[3,2,2],[3,4,5],[5,4,3]]  
+-- [[3,4,6],[9,20,30],[10,12,12]] 
+
+-- ghci> flip' zip [1,2,3,4,5] "hello"  
+-- [('h',1),('e',2),('l',3),('l',4),('o',5)]  
+-- ghci> zipWith (flip' div) [2,2..] [10,8,6,4,2]  
+-- [5,4,3,2,1]  
+
+-- Maps and filters
+-- map :: (a -> b) -> [a] -> [b]  
+-- map _ [] = []  
+-- map f (x:xs) = f x : map f xs  
+
+-- filter :: (a -> Bool) -> [a] -> [a]  
+-- filter _ [] = []  
+-- filter p (x:xs)   
+--     | p x       = x : filter p xs  
+--     | otherwise = filter p xs 
+
+-- ghci> let listOfFuns = map (*) [0..]  
+-- ghci> (listOfFuns !! 4) 5  
+-- 20  
+
+-- lambdas
+-- zipWith (\a b -> (a * 30 + 3) / b) [5,4,3,2,1] [1,2,3,4,5] 
+-- [153.0,61.5,31.0,15.75,6.6] 
+
+-- folds
+sum'' :: (Num a) => [a] -> a  
+sum'' xs = foldl (\acc x -> acc + x) 0 xs  
+-- ghci> sum'' [3,5,2,1]  
+-- 11  
+
+elem'' :: (Eq a) => a -> [a] -> Bool  
+elem'' y ys = foldl (\acc x -> if x == y then True else acc) False ys  
+
+map' :: (a -> b) -> [a] -> [b]  
+-- right fold
+map' f xs = foldr (\x acc -> f x : acc) [] xs  
+-- left fold, ++ function is much more expensive than :
+map'' f xs = foldl (\acc x -> acc ++ [f x]) [] xs
+
+
+-- Folds can be used to implement any function where you traverse a list once, element by element, and then return something based on that.
+-- Whenever you want to traverse a list to return something, chances are you want a fold.
+-- That's why folds are, along with maps and filters, one of the most useful types of functions in functional programming.
+
+-- Function application with $, equals to ()
+
+-- Function composition
+-- ghci> map (\x -> negate (abs x)) [5,-3,-6,7,-3,2,-19,24]
+-- ghci> map (negate . abs) [5,-3,-6,7,-3,2,-19,24] 
